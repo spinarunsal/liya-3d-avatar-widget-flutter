@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Liya 3D Avatar</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+    }
+    #avatar-container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="avatar-container"></div>
+  
+  <script src="three.min.js"></script>
+  <script src="GLTFLoader.js"></script>
+  <script src="avatar_scene.js"></script>
+  <script src="widget_bridge.js"></script>
+  
+  <script>
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+      const container = document.getElementById('avatar-container');
+      window.liya3dAvatar = new Liya3dAvatarScene(container);
+      
+      // Notify Flutter that WebView is ready
+      if (window.Liya3dFlutter && window.Liya3dFlutter.onWebViewReady) {
+        window.Liya3dFlutter.onWebViewReady();
+      }
+    });
+  </script>
+</body>
+</html>

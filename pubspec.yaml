@@ -1,0 +1,49 @@
+name: liya_3d_avatar_widget_flutter
+description: Liya AI 3D Talking Avatar Widget for Flutter - WebView + Three.js + Native UI
+version: 0.1.0
+homepage: https://liyalabs.com
+repository: https://github.com/liyalabs/liya_3d_avatar_widget_flutter
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+  flutter: '>=3.16.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # WebView - Three.js rendering
+  flutter_inappwebview: ^6.1.5
+  
+  # HTTP Client
+  http: ^1.2.0
+  
+  # Audio Playback
+  just_audio: ^0.9.40
+  
+  # Speech-to-Text
+  speech_to_text: ^7.0.0
+  
+  # Local Storage
+  shared_preferences: ^2.3.0
+  
+  # Path (temp files for audio)
+  path_provider: ^2.1.0
+  
+  # File Picker
+  file_picker: ^8.1.0
+  
+  # JSON serialization
+  collection: ^1.18.0
+  
+  # Runtime permissions (Android)
+  permission_handler: ^11.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  assets:
+    - lib/assets/web/
