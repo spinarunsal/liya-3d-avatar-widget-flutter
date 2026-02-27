@@ -205,7 +205,7 @@ class _Liya3dAvatarWebViewState extends State<Liya3dAvatarWebView>
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    '${widget.assistantName} yükleniyor...',
+                    '${widget.assistantName} asistan yükleniyor...',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.4),
                       fontSize: 12,
