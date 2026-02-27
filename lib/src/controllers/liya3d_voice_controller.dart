@@ -71,7 +71,7 @@ class Liya3dVoiceController extends ChangeNotifier {
           return false;
         }
       }
-      
+
       _isAvailable = await _speech.initialize(
         onStatus: _onStatus,
         onError: _onError,
@@ -109,9 +109,11 @@ class Liya3dVoiceController extends ChangeNotifier {
       await _speech.listen(
         onResult: _onResult,
         localeId: _locale,
-        listenMode: ListenMode.dictation,
-        cancelOnError: false,
-        partialResults: true,
+        listenOptions: SpeechListenOptions(
+          listenMode: ListenMode.dictation,
+          cancelOnError: false,
+          partialResults: true,
+        ),
       );
 
       _isListening = true;

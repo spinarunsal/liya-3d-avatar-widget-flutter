@@ -48,9 +48,7 @@ class Liya3dPremiumOverlay extends StatelessWidget {
 
           // Title
           Text(
-            requiresPremiumPlus
-                ? 'Premium Plus'
-                : 'Premium',
+            requiresPremiumPlus ? 'Premium Plus' : 'Premium',
             style: const TextStyle(
               color: Liya3dColors.textLight,
               fontSize: 24,
@@ -91,7 +89,7 @@ class Liya3dPremiumOverlay extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: Liya3dColors.premium.withOpacity(0.4),
+                      color: Liya3dColors.premium.withValues(alpha: 0.4),
                       blurRadius: 16,
                       offset: const Offset(0, 8),
                     ),

@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import '../controllers/liya3d_avatar_controller.dart';
@@ -26,15 +24,15 @@ class Liya3dAvatarWebView extends StatefulWidget {
   State<Liya3dAvatarWebView> createState() => _Liya3dAvatarWebViewState();
 }
 
-class _Liya3dAvatarWebViewState extends State<Liya3dAvatarWebView> with SingleTickerProviderStateMixin {
-  InAppWebViewController? _webViewController;
+class _Liya3dAvatarWebViewState extends State<Liya3dAvatarWebView>
+    with SingleTickerProviderStateMixin {
   bool _isLoading = true;
   bool _minLoadingTimeElapsed = false;
   bool _avatarReady = false;
   String? _error;
-  
+
   late AnimationController _particleAnimController;
-  
+
   @override
   void initState() {
     super.initState();
@@ -42,7 +40,7 @@ class _Liya3dAvatarWebViewState extends State<Liya3dAvatarWebView> with SingleTi
       vsync: this,
       duration: const Duration(seconds: 3),
     )..repeat();
-    
+
     // Minimum loading time of 3 seconds for user to appreciate the animation
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
@@ -65,81 +63,81 @@ class _Liya3dAvatarWebViewState extends State<Liya3dAvatarWebView> with SingleTi
           duration: const Duration(milliseconds: 500),
           opacity: _isLoading ? 0.0 : 1.0,
           child: InAppWebView(
-          initialData: InAppWebViewInitialData(
-            data: _getHtmlContent(),
-            mimeType: 'text/html',
-            encoding: 'utf-8',
-          ),
-          initialSettings: InAppWebViewSettings(
-            transparentBackground: true,
-            javaScriptEnabled: true,
-            mediaPlaybackRequiresUserGesture: false,
-            allowsInlineMediaPlayback: true,
-            allowFileAccessFromFileURLs: true,
-            allowUniversalAccessFromFileURLs: true,
-            useHybridComposition: true,
-            useShouldOverrideUrlLoading: false,
-            cacheEnabled: true,
-            clearCache: false,
-            supportZoom: false,
-            disableHorizontalScroll: true,
-            disableVerticalScroll: true,
-          ),
-          onWebViewCreated: (controller) {
-            _webViewController = controller;
-            widget.controller.setWebViewController(controller);
+            initialData: InAppWebViewInitialData(
+              data: _getHtmlContent(),
+              mimeType: 'text/html',
+              encoding: 'utf-8',
+            ),
+            initialSettings: InAppWebViewSettings(
+              transparentBackground: true,
+              javaScriptEnabled: true,
+              mediaPlaybackRequiresUserGesture: false,
+              allowsInlineMediaPlayback: true,
+              allowFileAccessFromFileURLs: true,
+              allowUniversalAccessFromFileURLs: true,
+              useHybridComposition: true,
+              useShouldOverrideUrlLoading: false,
+              cacheEnabled: true,
+              clearCache: false,
+              supportZoom: false,
+              disableHorizontalScroll: true,
+              disableVerticalScroll: true,
+            ),
+            onWebViewCreated: (controller) {
+              widget.controller.setWebViewController(controller);
 
-            // Register JavaScript handlers
-            controller.addJavaScriptHandler(
-              handlerName: 'onAvatarLoaded',
-              callback: (args) {
-                widget.controller.onAvatarLoaded();
-                if (mounted) {
-                  setState(() {
-                    _avatarReady = true;
-                    _error = null;
-                    // Only hide loading if minimum time has elapsed
-                    if (_minLoadingTimeElapsed) {
+              // Register JavaScript handlers
+              controller.addJavaScriptHandler(
+                handlerName: 'onAvatarLoaded',
+                callback: (args) {
+                  widget.controller.onAvatarLoaded();
+                  if (mounted) {
+                    setState(() {
+                      _avatarReady = true;
+                      _error = null;
+                      // Only hide loading if minimum time has elapsed
+                      if (_minLoadingTimeElapsed) {
+                        _isLoading = false;
+                      }
+                    });
+                  }
+                },
+              );
+
+              controller.addJavaScriptHandler(
+                handlerName: 'onAvatarError',
+                callback: (args) {
+                  final error =
+                      args.isNotEmpty ? args[0].toString() : 'Unknown error';
+                  widget.controller.onAvatarError(error);
+                  if (mounted) {
+                    setState(() {
                       _isLoading = false;
-                    }
-                  });
-                }
-              },
-            );
+                      _error = error;
+                    });
+                  }
+                },
+              );
 
-            controller.addJavaScriptHandler(
-              handlerName: 'onAvatarError',
-              callback: (args) {
-                final error = args.isNotEmpty ? args[0].toString() : 'Unknown error';
-                widget.controller.onAvatarError(error);
-                if (mounted) {
-                  setState(() {
-                    _isLoading = false;
-                    _error = error;
-                  });
-                }
-              },
-            );
+              controller.addJavaScriptHandler(
+                handlerName: 'onSpeakingStarted',
+                callback: (args) {
+                  // Handled by controller
+                },
+              );
 
-            controller.addJavaScriptHandler(
-              handlerName: 'onSpeakingStarted',
-              callback: (args) {
-                // Handled by controller
-              },
-            );
-
-            controller.addJavaScriptHandler(
-              handlerName: 'onSpeakingEnded',
-              callback: (args) {
-                // Handled by controller
-              },
-            );
-          },
-          onLoadStop: (controller, url) async {
-            await widget.controller.onWebViewReady();
-          },
-          onConsoleMessage: (controller, consoleMessage) {},
-        ),
+              controller.addJavaScriptHandler(
+                handlerName: 'onSpeakingEnded',
+                callback: (args) {
+                  // Handled by controller
+                },
+              );
+            },
+            onLoadStop: (controller, url) async {
+              await widget.controller.onWebViewReady();
+            },
+            onConsoleMessage: (controller, consoleMessage) {},
+          ),
         ),
         // Loading indicator - Animated Particle human silhouette
         if (widget.showLoading && _isLoading)
@@ -165,7 +163,8 @@ class _Liya3dAvatarWebViewState extends State<Liya3dAvatarWebView> with SingleTi
                     Text(
                       'Generating...',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.6 + _particleAnimController.value * 0.2),
+                        color: Colors.white.withValues(
+                            alpha: 0.6 + _particleAnimController.value * 0.2),
                         fontSize: 16,
                         fontWeight: FontWeight.w400,
                         letterSpacing: 1.5,
@@ -178,8 +177,9 @@ class _Liya3dAvatarWebViewState extends State<Liya3dAvatarWebView> with SingleTi
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
-                          backgroundColor: Colors.white.withOpacity(0.1),
-                          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF6366F1)),
+                          backgroundColor: Colors.white.withValues(alpha: 0.1),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                              Color(0xFF6366F1)),
                           minHeight: 3,
                         ),
                       ),
@@ -983,23 +983,24 @@ window.Liya3dFlutter = {
 /// Male figure with arms spread, no skirt, fits in view, very slow animation
 class _ParticleHumanPainter extends CustomPainter {
   final double animationValue;
-  
+
   _ParticleHumanPainter({this.animationValue = 0.0});
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..style = PaintingStyle.fill;
     // Very slow animation - multiply by small factor
     final time = animationValue * 0.5;
-    
+
     // Scale and center the figure to fit in view
     final scale = 0.7; // Scale down to fit
     final offsetY = 0.1; // Move down slightly
-    
+
     _drawMaleSilhouette(canvas, size, paint, time, scale, offsetY);
   }
-  
-  void _drawMaleSilhouette(Canvas canvas, Size size, Paint paint, double time, double scale, double offsetY) {
+
+  void _drawMaleSilhouette(Canvas canvas, Size size, Paint paint, double time,
+      double scale, double offsetY) {
     // Head - circular cluster (scaled and centered)
     for (int i = 0; i < 150; i++) {
       final angle = (i / 150) * 3.14159 * 2;
@@ -1009,14 +1010,14 @@ class _ParticleHumanPainter extends CustomPainter {
       final y = offsetY + 0.12 + (r * 0.85 * _sin(angle)) * scale;
       _drawGhostParticle(canvas, size, paint, x, y, i, time);
     }
-    
+
     // Neck - thin column
     for (int i = 0; i < 30; i++) {
       final x = 0.5 + (_noise(i * 0.3) - 0.5) * 0.03 * scale;
       final y = offsetY + (0.20 + (i / 30) * 0.04) * scale + 0.12;
       _drawGhostParticle(canvas, size, paint, x, y, i + 150, time);
     }
-    
+
     // Shoulders and upper torso - wider at top
     for (int i = 0; i < 200; i++) {
       final t = i / 200;
@@ -1029,7 +1030,7 @@ class _ParticleHumanPainter extends CustomPainter {
       final y = offsetY + yPos * scale + 0.12;
       _drawGhostParticle(canvas, size, paint, x, y, i + 200, time);
     }
-    
+
     // Lower torso / hips - straight (no skirt)
     for (int i = 0; i < 100; i++) {
       final t = i / 100;
@@ -1039,59 +1040,71 @@ class _ParticleHumanPainter extends CustomPainter {
       final y = offsetY + yPos * scale + 0.12;
       _drawGhostParticle(canvas, size, paint, x, y, i + 400, time);
     }
-    
+
     // Left arm - extended outward
     for (int i = 0; i < 120; i++) {
       final t = i / 120;
       final baseX = 0.36 - t * 0.22;
       final baseY = 0.26 + t * 0.10;
       final scatter = 0.015 * (1 - t * 0.3);
-      final x = 0.5 + ((baseX - 0.5) + (_noise(i * 0.3) - 0.5) * scatter) * scale;
-      final y = offsetY + (baseY + (_noise(i * 0.2 + 50) - 0.5) * scatter) * scale + 0.12;
+      final x =
+          0.5 + ((baseX - 0.5) + (_noise(i * 0.3) - 0.5) * scatter) * scale;
+      final y = offsetY +
+          (baseY + (_noise(i * 0.2 + 50) - 0.5) * scatter) * scale +
+          0.12;
       _drawGhostParticle(canvas, size, paint, x, y, i + 500, time);
     }
-    
+
     // Right arm - extended outward
     for (int i = 0; i < 120; i++) {
       final t = i / 120;
       final baseX = 0.64 + t * 0.22;
       final baseY = 0.26 + t * 0.10;
       final scatter = 0.015 * (1 - t * 0.3);
-      final x = 0.5 + ((baseX - 0.5) + (_noise(i * 0.3 + 200) - 0.5) * scatter) * scale;
-      final y = offsetY + (baseY + (_noise(i * 0.2 + 150) - 0.5) * scatter) * scale + 0.12;
+      final x = 0.5 +
+          ((baseX - 0.5) + (_noise(i * 0.3 + 200) - 0.5) * scatter) * scale;
+      final y = offsetY +
+          (baseY + (_noise(i * 0.2 + 150) - 0.5) * scatter) * scale +
+          0.12;
       _drawGhostParticle(canvas, size, paint, x, y, i + 620, time);
     }
-    
+
     // Left leg - straight pants style
     for (int i = 0; i < 140; i++) {
       final t = i / 140;
       final baseX = 0.46 - t * 0.04;
       final baseY = 0.50 + t * 0.35;
       final scatter = 0.02;
-      final x = 0.5 + ((baseX - 0.5) + (_noise(i * 0.25) - 0.5) * scatter) * scale;
-      final y = offsetY + (baseY + (_noise(i * 0.15) - 0.5) * 0.01) * scale + 0.12;
+      final x =
+          0.5 + ((baseX - 0.5) + (_noise(i * 0.25) - 0.5) * scatter) * scale;
+      final y =
+          offsetY + (baseY + (_noise(i * 0.15) - 0.5) * 0.01) * scale + 0.12;
       _drawGhostParticle(canvas, size, paint, x, y, i + 740, time);
     }
-    
+
     // Right leg - straight pants style
     for (int i = 0; i < 140; i++) {
       final t = i / 140;
       final baseX = 0.54 + t * 0.04;
       final baseY = 0.50 + t * 0.35;
       final scatter = 0.02;
-      final x = 0.5 + ((baseX - 0.5) + (_noise(i * 0.25 + 300) - 0.5) * scatter) * scale;
-      final y = offsetY + (baseY + (_noise(i * 0.15 + 300) - 0.5) * 0.01) * scale + 0.12;
+      final x = 0.5 +
+          ((baseX - 0.5) + (_noise(i * 0.25 + 300) - 0.5) * scatter) * scale;
+      final y = offsetY +
+          (baseY + (_noise(i * 0.15 + 300) - 0.5) * 0.01) * scale +
+          0.12;
       _drawGhostParticle(canvas, size, paint, x, y, i + 880, time);
     }
-    
+
     // Subtle floating particles around figure
     for (int i = 0; i < 60; i++) {
       final angle = (i / 60) * 3.14159 * 2 + time * 0.1;
       final radius = 0.28 + 0.08 * _noise(i * 0.15 + time * 0.05);
       final x = 0.5 + radius * _cos(angle) * scale;
       final y = offsetY + (0.45 + radius * 0.6 * _sin(angle)) * scale + 0.12;
-      
-      paint.color = Colors.white.withOpacity(0.06 + 0.03 * _noise(i + time * 0.1));
+
+      paint.color =
+          Colors.white.withValues(alpha: 0.06 + 0.03 * _noise(i + time * 0.1));
       canvas.drawCircle(
         Offset(x * size.width, y * size.height),
         1.0,
@@ -1099,29 +1112,30 @@ class _ParticleHumanPainter extends CustomPainter {
       );
     }
   }
-  
-  void _drawGhostParticle(Canvas canvas, Size size, Paint paint, double x, double y, int index, double time) {
+
+  void _drawGhostParticle(Canvas canvas, Size size, Paint paint, double x,
+      double y, int index, double time) {
     final px = x * size.width;
     final py = y * size.height;
-    
+
     // Particle size - small and consistent
     final sizeNoise = _noise(index * 0.08);
     final particleSize = 1.0 + sizeNoise * 1.2;
-    
+
     // Ghost-like white color with varying opacity
     final opacityBase = 0.35 + 0.35 * _noise(index * 0.04 + time * 0.05);
     final opacity = opacityBase.clamp(0.2, 0.65);
-    
-    paint.color = Colors.white.withOpacity(opacity);
+
+    paint.color = Colors.white.withValues(alpha: opacity);
     canvas.drawCircle(Offset(px, py), particleSize, paint);
   }
-  
+
   // Simple noise function for organic randomness
   double _noise(double x) {
     final n = (x * 12.9898).remainder(1.0);
     return ((n * 43758.5453).remainder(1.0)).abs();
   }
-  
+
   double _sin(double x) {
     x = x.remainder(6.28318);
     if (x < 0) x += 6.28318;
@@ -1132,7 +1146,7 @@ class _ParticleHumanPainter extends CustomPainter {
       return -4 * x * (3.14159 - x) / (3.14159 * 3.14159);
     }
   }
-  
+
   double _cos(double x) => _sin(x + 1.5708);
 
   @override

@@ -177,7 +177,7 @@ class Liya3dHeader extends StatelessWidget {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
@@ -198,7 +198,7 @@ class Liya3dHeader extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
@@ -281,7 +281,7 @@ class _StatusDotState extends State<_StatusDot>
             boxShadow: widget.shouldPulse
                 ? [
                     BoxShadow(
-                      color: widget.color.withOpacity(0.5),
+                      color: widget.color.withValues(alpha: 0.5),
                       blurRadius: 8 * _animation.value,
                       spreadRadius: 2 * _animation.value,
                     ),

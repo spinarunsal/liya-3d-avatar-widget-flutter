@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../models/liya3d_config.dart';
-import '../models/liya3d_enums.dart';
+
 import '../models/liya3d_message.dart';
 import '../services/liya3d_api_service.dart';
 import '../services/liya3d_avatar_service.dart';
@@ -13,7 +13,7 @@ import '../controllers/liya3d_avatar_controller.dart';
 import '../controllers/liya3d_voice_controller.dart';
 import '../i18n/liya3d_translations.dart';
 import '../utils/liya3d_colors.dart';
-import '../utils/liya3d_glass_decoration.dart';
+
 import '../utils/liya3d_tts_utils.dart';
 import 'liya3d_avatar_webview.dart';
 
@@ -80,31 +80,31 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
   final ScrollController _scrollController = ScrollController();
 
   // State
-  bool _isInitialized = false;
+
   bool _welcomeSpoken = false;
   String _locale = 'tr';
   Liya3dTranslations _translations = Liya3dTranslations.tr;
-  
+
   // Chat messages for bubble display
   final List<_ChatMessage> _chatMessages = [];
-  
+
   // Typewriter effect state
   String _typewriterText = '';
   String _fullResponseText = '';
   Timer? _typewriterTimer;
   int _typewriterIndex = 0;
-  
+
   // Pending typewriter data (wait for audio to start)
   int? _pendingMessageIndex;
   int? _pendingMsPerChar;
   bool _pendingIsWelcome = false;
-  
+
   // Current user input
   String _userInput = '';
-  
+
   // Prevent duplicate message sends
   String? _lastSentMessage;
-  
+
   // Processing state for button disable
   bool _isProcessing = false;
 
@@ -166,7 +166,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
 
     // Avatar loaded callback - speak welcome message
     _avatarController.onModelLoaded = _onAvatarLoaded;
-    
+
     // Start typewriter when audio actually starts playing
     _avatarController.onSpeakingStarted = _onSpeakingStarted;
   }
@@ -176,20 +176,20 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
     await _chatController.init();
     await _voiceController.init(locale: _locale);
 
-    _isInitialized = true;
     if (mounted) setState(() {});
   }
 
   void _onAvatarLoaded() {
     if (!mounted) return;
-    
+
     widget.onAvatarLoaded?.call();
-    
+
     if (!_welcomeSpoken && mounted) {
       _welcomeSpoken = true;
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted && !_avatarController.isSpeaking) {
-          final welcomeMsg = widget.welcomeMessage ?? _translations.welcomeMessage;
+          final welcomeMsg =
+              widget.welcomeMessage ?? _translations.welcomeMessage;
           _speakWithTypewriter(welcomeMsg, isWelcome: true);
         }
       });
@@ -205,17 +205,17 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
     if (!mounted || _pendingMessageIndex == null || _pendingMsPerChar == null) {
       return;
     }
-    
+
     final messageIndex = _pendingMessageIndex!;
     final msPerChar = _pendingMsPerChar!;
     final text = _fullResponseText;
     final isWelcome = _pendingIsWelcome;
-    
+
     // Clear pending state
     _pendingMessageIndex = null;
     _pendingMsPerChar = null;
     _pendingIsWelcome = false;
-    
+
     // Start typewriter effect NOW (audio has started)
     _typewriterTimer = Timer.periodic(
       Duration(milliseconds: msPerChar.clamp(20, 100)),
@@ -224,7 +224,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
           timer.cancel();
           return;
         }
-        
+
         if (_typewriterIndex < text.length) {
           setState(() {
             _typewriterIndex++;
@@ -240,9 +240,11 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
           _scrollToBottom();
         } else {
           timer.cancel();
-          final finalSuggestions = isWelcome 
+          final finalSuggestions = isWelcome
               ? (widget.welcomeSuggestions ?? _translations.welcomeSuggestions)
-              : (_chatController.suggestions.isNotEmpty ? _chatController.suggestions : null);
+              : (_chatController.suggestions.isNotEmpty
+                  ? _chatController.suggestions
+                  : null);
           setState(() {
             _isProcessing = false;
             if (messageIndex < _chatMessages.length) {
@@ -261,7 +263,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
 
   void _onAssistantMessage(Liya3dMessage message) {
     widget.onMessageReceived?.call(message.content);
-    
+
     // Speak with typewriter effect — strip markdown/URLs for clean TTS
     if (message.content.isNotEmpty) {
       _speakWithTypewriter(message.content);
@@ -269,9 +271,10 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
   }
 
   /// Speak text and show typewriter effect synchronized with speech
-  Future<void> _speakWithTypewriter(String text, {bool isWelcome = false}) async {
+  Future<void> _speakWithTypewriter(String text,
+      {bool isWelcome = false}) async {
     _typewriterTimer?.cancel();
-    
+
     setState(() {
       _fullResponseText = text;
       _typewriterText = '';
@@ -286,37 +289,39 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
       content: '',
       isTyping: true,
     ));
-    
+
     try {
       // Strip markdown/URLs for clean TTS, keep original text for display
       final ttsText = Liya3dTtsUtils.stripForTTS(text);
       final response = await _avatarService.generateSpeech(ttsText);
-      
+
       if (response.success && response.data != null && mounted) {
         final speechData = response.data!;
-        
+
         if (!speechData.hasAudio || speechData.duration <= 0) {
           _showTextWithTypewriter(text, messageIndex, isWelcome);
           return;
         }
-        
+
         // Calculate typing speed based on audio duration
         final audioDuration = speechData.duration;
         final charCount = text.length;
         final msPerChar = (audioDuration * 1000 / charCount).round();
-        
+
         // Store pending typewriter data - will start when audio actually begins
         _pendingMessageIndex = messageIndex;
         _pendingMsPerChar = msPerChar;
         _pendingIsWelcome = isWelcome;
-        
+
         // Start speaking - typewriter will start via onSpeakingStarted callback
         _avatarController.speakWithData(speechData);
       } else {
         // Fallback: show text immediately without speech
-        final suggestions = isWelcome 
+        final suggestions = isWelcome
             ? (widget.welcomeSuggestions ?? _translations.welcomeSuggestions)
-            : (_chatController.suggestions.isNotEmpty ? _chatController.suggestions : null);
+            : (_chatController.suggestions.isNotEmpty
+                ? _chatController.suggestions
+                : null);
         setState(() {
           _isProcessing = false;
           if (messageIndex < _chatMessages.length) {
@@ -332,16 +337,18 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
     } catch (_) {
       _showTextWithTypewriter(text, messageIndex, isWelcome);
     }
-    
+
     _scrollToBottom();
   }
 
   /// Fallback: show text with typewriter effect without audio
   void _showTextWithTypewriter(String text, int messageIndex, bool isWelcome) {
-    final suggestions = isWelcome 
+    final suggestions = isWelcome
         ? (widget.welcomeSuggestions ?? _translations.welcomeSuggestions)
-        : (_chatController.suggestions.isNotEmpty ? _chatController.suggestions : null);
-    
+        : (_chatController.suggestions.isNotEmpty
+            ? _chatController.suggestions
+            : null);
+
     // Simple typewriter without audio - 30ms per character
     _typewriterTimer = Timer.periodic(
       const Duration(milliseconds: 30),
@@ -350,7 +357,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
           timer.cancel();
           return;
         }
-        
+
         if (_typewriterIndex < text.length) {
           setState(() {
             _typewriterIndex++;
@@ -396,10 +403,10 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
 
   void _onVoiceComplete(String transcript) {
     if (transcript.isEmpty || transcript == _lastSentMessage) return;
-    
+
     _lastSentMessage = transcript;
     widget.onMessageSent?.call(transcript);
-    
+
     // Add user message to chat
     setState(() {
       _chatMessages.add(_ChatMessage(
@@ -408,7 +415,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
       ));
       _userInput = '';
     });
-    
+
     _scrollToBottom();
     _chatController.sendMessage(transcript);
   }
@@ -428,7 +435,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
 
   void _handleSuggestionTap(String suggestion) {
     widget.onMessageSent?.call(suggestion);
-    
+
     // Add user message to chat
     setState(() {
       _chatMessages.add(_ChatMessage(
@@ -436,7 +443,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
         content: suggestion,
       ));
     });
-    
+
     _scrollToBottom();
     _chatController.sendMessage(suggestion);
   }
@@ -444,7 +451,8 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
   String _getHintText() {
     if (_voiceController.isListening) return _translations.listening;
     if (_chatController.isLoading || _isProcessing) {
-      return _translations.preparingMessages[DateTime.now().second % _translations.preparingMessages.length];
+      return _translations.preparingMessages[
+          DateTime.now().second % _translations.preparingMessages.length];
     }
     return _translations.speakToMic;
   }
@@ -462,19 +470,19 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
     if (_voiceController.isListening) {
       _voiceController.stopListening();
     }
-    
+
     // Stop avatar speaking
     _avatarController.stopSpeaking();
-    
+
     // Cancel typewriter effect
     _typewriterTimer?.cancel();
     _typewriterTimer = null;
-    
+
     // Clear pending typewriter state
     _pendingMessageIndex = null;
     _pendingMsPerChar = null;
     _pendingIsWelcome = false;
-    
+
     // Reset processing state
     setState(() {
       _isProcessing = false;
@@ -486,17 +494,18 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
   void _reloadConversation() {
     // Cancel any current action first
     _cancelCurrentAction();
-    
+
     // Clear chat messages
     setState(() {
       _chatMessages.clear();
       _welcomeSpoken = false;
     });
-    
+
     // Re-speak welcome message after a short delay
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted && !_avatarController.isSpeaking) {
-        final welcomeMsg = widget.welcomeMessage ?? _translations.welcomeMessage;
+        final welcomeMsg =
+            widget.welcomeMessage ?? _translations.welcomeMessage;
         _speakWithTypewriter(welcomeMsg, isWelcome: true);
       }
     });
@@ -523,7 +532,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF0a0a14),  // Darker for more contrast
+            Color(0xFF0a0a14), // Darker for more contrast
             Color(0xFF101020),
           ],
         ),
@@ -562,7 +571,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
 
             // Voice Control (liquid glass, centered)
             _buildGlassVoiceControl(),
-            
+
             const SizedBox(height: 16),
           ],
         ),
@@ -605,12 +614,13 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                     width: 1,
                   ),
                 ),
@@ -619,7 +629,9 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
                   children: [
                     _StatusDot(
                       color: statusColor,
-                      isPulsing: isSpeaking || isListening || _chatController.isLoading,
+                      isPulsing: isSpeaking ||
+                          isListening ||
+                          _chatController.isLoading,
                     ),
                     const SizedBox(width: 8),
                     Text(
@@ -635,13 +647,13 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
                       Container(
                         width: 1,
                         height: 12,
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         statusText,
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.6),
+                          color: Colors.white.withValues(alpha: 0.6),
                           fontSize: 12,
                         ),
                       ),
@@ -651,13 +663,13 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
               ),
             ),
           ),
-          
+
           // Close button only in header
           if (widget.onClose != null)
             _buildGlassIconButton(
               icon: Icon(
                 Icons.close,
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
                 size: 18,
               ),
               onTap: widget.onClose,
@@ -667,11 +679,13 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
       ),
     );
   }
-  
+
   /// Build action buttons (language + reload/cancel) for avatar area
   Widget _buildAvatarActionButtons() {
-    final isActionInProgress = _isProcessing || _avatarController.isSpeaking || _chatController.isLoading;
-    
+    final isActionInProgress = _isProcessing ||
+        _avatarController.isSpeaking ||
+        _chatController.isLoading;
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: BackdropFilter(
@@ -679,10 +693,10 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               width: 1,
             ),
           ),
@@ -694,9 +708,10 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
                 onTap: isActionInProgress ? null : _toggleLocale,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: AnimatedOpacity(
@@ -713,31 +728,34 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
                   ),
                 ),
               ),
-              
+
               Container(
                 width: 1,
                 height: 20,
                 margin: const EdgeInsets.symmetric(horizontal: 4),
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
               ),
-              
+
               // Reload/Cancel button
               GestureDetector(
-                onTap: isActionInProgress ? _cancelCurrentAction : _reloadConversation,
+                onTap: isActionInProgress
+                    ? _cancelCurrentAction
+                    : _reloadConversation,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: isActionInProgress 
-                        ? const Color(0xFFef4444).withOpacity(0.3)
-                        : Colors.white.withOpacity(0.1),
+                    color: isActionInProgress
+                        ? const Color(0xFFef4444).withValues(alpha: 0.3)
+                        : Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Icon(
                     isActionInProgress ? Icons.close : Icons.refresh,
-                    color: isActionInProgress 
+                    color: isActionInProgress
                         ? const Color(0xFFef4444)
-                        : Colors.white.withOpacity(0.7),
+                        : Colors.white.withValues(alpha: 0.7),
                     size: 16,
                   ),
                 ),
@@ -766,14 +784,14 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: isCancel 
-                  ? const Color(0xFFef4444).withOpacity(0.3)
-                  : Colors.black.withOpacity(0.3),
+              color: isCancel
+                  ? const Color(0xFFef4444).withValues(alpha: 0.3)
+                  : Colors.black.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: isCancel
-                    ? const Color(0xFFef4444).withOpacity(0.4)
-                    : Colors.white.withOpacity(0.1),
+                    ? const Color(0xFFef4444).withValues(alpha: 0.4)
+                    : Colors.white.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
@@ -801,10 +819,10 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
             // Fixed height for chat area - reduced to prevent overflow
             height: 150,
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.4),
+              color: Colors.black.withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 width: 1,
               ),
             ),
@@ -812,40 +830,43 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
               children: [
                 // Chat messages (scrollable) or empty state
                 Expanded(
-                  child: _chatMessages.isEmpty && _userInput.isEmpty && !_chatController.isLoading
-                    ? Center(
-                        child: Text(
-                          _translations.speakToMic,
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.4),
-                            fontSize: 14,
+                  child: _chatMessages.isEmpty &&
+                          _userInput.isEmpty &&
+                          !_chatController.isLoading
+                      ? Center(
+                          child: Text(
+                            _translations.speakToMic,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.4),
+                              fontSize: 14,
+                            ),
                           ),
+                        )
+                      : ListView.builder(
+                          controller: _scrollController,
+                          shrinkWrap: true,
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _chatMessages.length,
+                          itemBuilder: (context, index) {
+                            final message = _chatMessages[index];
+                            return _buildGlassChatBubble(message);
+                          },
                         ),
-                      )
-                    : ListView.builder(
-                    controller: _scrollController,
-                    shrinkWrap: true,
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _chatMessages.length,
-                    itemBuilder: (context, index) {
-                      final message = _chatMessages[index];
-                      return _buildGlassChatBubble(message);
-                    },
-                  ),
                 ),
-                
+
                 // User input display (when listening)
                 if (_userInput.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6366f1).withOpacity(0.2),
+                        color: const Color(0xFF6366f1).withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: const Color(0xFF6366f1).withOpacity(0.4),
+                          color: const Color(0xFF6366f1).withValues(alpha: 0.4),
                           width: 1,
                         ),
                       ),
@@ -856,7 +877,8 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
                             height: 14,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6366f1)),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  Color(0xFF6366f1)),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -875,7 +897,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
                       ),
                     ),
                   ),
-                
+
                 // Loading indicator
                 if (_chatController.isLoading && _userInput.isEmpty)
                   Padding(
@@ -883,9 +905,10 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
+                            color: Colors.white.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: _buildThinkingDots(),
@@ -900,15 +923,16 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
       ),
     );
   }
-  
+
   /// Liquid Glass Chat Bubble
   Widget _buildGlassChatBubble(_ChatMessage message) {
     final isUser = message.role == 'user';
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
-        crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment:
+            isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           // Message bubble
           Container(
@@ -918,8 +942,8 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: isUser
-                  ? const Color(0xFF6366f1).withOpacity(0.8)
-                  : Colors.white.withOpacity(0.1),
+                  ? const Color(0xFF6366f1).withValues(alpha: 0.8)
+                  : Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(16),
                 topRight: const Radius.circular(16),
@@ -929,7 +953,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
               border: isUser
                   ? null
                   : Border.all(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.1),
                       width: 1,
                     ),
             ),
@@ -948,7 +972,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
                       width: 8,
                       height: 14,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.5),
+                        color: Colors.white.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -956,9 +980,12 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
               ],
             ),
           ),
-          
+
           // Suggestions (only for assistant messages)
-          if (!isUser && message.suggestions != null && message.suggestions!.isNotEmpty && !message.isTyping)
+          if (!isUser &&
+              message.suggestions != null &&
+              message.suggestions!.isNotEmpty &&
+              !message.isTyping)
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Wrap(
@@ -968,12 +995,13 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
                   return GestureDetector(
                     onTap: () => _handleSuggestionTap(suggestion),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6366f1).withOpacity(0.15),
+                        color: const Color(0xFF6366f1).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: const Color(0xFF6366f1).withOpacity(0.3),
+                          color: const Color(0xFF6366f1).withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -997,42 +1025,44 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
   /// Liquid Glass Voice Control
   Widget _buildGlassVoiceControl() {
     final isListening = _voiceController.isListening;
-    final isDisabled = _chatController.isLoading || _avatarController.isSpeaking;
+    final isDisabled =
+        _chatController.isLoading || _avatarController.isSpeaking;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
           const SizedBox(height: 16),
-          
+
           // Hint text (liquid glass pill)
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                     width: 1,
                   ),
                 ),
                 child: Text(
                   _getHintText(),
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 13,
                   ),
                 ),
               ),
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Mic Button (liquid glass with gradient)
           GestureDetector(
             onTap: isDisabled ? null : _handleMicPressed,
@@ -1058,14 +1088,14 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
                           ),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       width: 2,
                     ),
                     boxShadow: [
                       BoxShadow(
                         color: isListening
-                            ? const Color(0xFFef4444).withOpacity(0.4)
-                            : const Color(0xFF6366f1).withOpacity(0.4),
+                            ? const Color(0xFFef4444).withValues(alpha: 0.4)
+                            : const Color(0xFF6366f1).withValues(alpha: 0.4),
                         blurRadius: 20,
                         offset: const Offset(0, 8),
                       ),
@@ -1089,113 +1119,10 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Text(
-        _translations.speakToMic,
-        style: TextStyle(
-          color: Colors.white.withOpacity(0.4),
-          fontSize: 14,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildChatBubble(_ChatMessage message) {
-    final isUser = message.role == 'user';
-    
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-        children: [
-          // Message bubble
-          Container(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.75,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: isUser
-                  ? const Color(0xFF6366f1)
-                  : Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.only(
-                topLeft: const Radius.circular(16),
-                topRight: const Radius.circular(16),
-                bottomLeft: Radius.circular(isUser ? 16 : 4),
-                bottomRight: Radius.circular(isUser ? 4 : 16),
-              ),
-              border: isUser
-                  ? null
-                  : Border.all(
-                      color: Colors.white.withOpacity(0.1),
-                      width: 1,
-                    ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildMarkdownText(
-                  message.content,
-                  isUser: isUser,
-                ),
-                // Typing indicator
-                if (message.isTyping)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Container(
-                      width: 8,
-                      height: 14,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          
-          // Suggestions (only for assistant messages)
-          if (!isUser && message.suggestions != null && message.suggestions!.isNotEmpty && !message.isTyping)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: message.suggestions!.take(3).map((suggestion) {
-                  return GestureDetector(
-                    onTap: () => _handleSuggestionTap(suggestion),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF6366f1).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color(0xFF6366f1).withOpacity(0.3),
-                          width: 1,
-                        ),
-                      ),
-                      child: Text(
-                        suggestion,
-                        style: const TextStyle(
-                          color: Color(0xFF6366f1),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
   /// Build text with simple markdown support (bold **text**)
   Widget _buildMarkdownText(String text, {required bool isUser}) {
-    final textColor = isUser ? Colors.white : Colors.white.withOpacity(0.9);
+    final textColor =
+        isUser ? Colors.white : Colors.white.withValues(alpha: 0.9);
     final boldStyle = TextStyle(
       color: textColor,
       fontSize: 14,
@@ -1216,7 +1143,8 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
     for (final match in regex.allMatches(text)) {
       // Add text before match
       if (match.start > lastEnd) {
-        spans.add(TextSpan(text: text.substring(lastEnd, match.start), style: normalStyle));
+        spans.add(TextSpan(
+            text: text.substring(lastEnd, match.start), style: normalStyle));
       }
       // Add bold text
       spans.add(TextSpan(text: match.group(1), style: boldStyle));
@@ -1249,86 +1177,14 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
               width: 8,
               height: 8,
               decoration: BoxDecoration(
-                color: Liya3dColors.primary.withOpacity(0.5 + (value * 0.5)),
+                color:
+                    Liya3dColors.primary.withValues(alpha: 0.5 + (value * 0.5)),
                 shape: BoxShape.circle,
               ),
             );
           },
         );
       }),
-    );
-  }
-
-  Widget _buildVoiceControl() {
-    final isListening = _voiceController.isListening;
-    final isDisabled = _chatController.isLoading || _avatarController.isSpeaking;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1a1a2e).withOpacity(0.5),
-        border: Border(
-          top: BorderSide(
-            color: Colors.white.withOpacity(0.1),
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          // Hint text
-          Expanded(
-            child: Text(
-              _getHintText(),
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
-                fontSize: 13,
-              ),
-            ),
-          ),
-          // Mic Button
-          GestureDetector(
-            onTap: isDisabled ? null : _handleMicPressed,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                gradient: isListening
-                    ? const LinearGradient(
-                        colors: [Color(0xFFef4444), Color(0xFFf97316)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    : const LinearGradient(
-                        colors: [Color(0xFF6366f1), Color(0xFF8b5cf6)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: isListening
-                        ? const Color(0xFFef4444).withOpacity(0.4)
-                        : const Color(0xFF6366f1).withOpacity(0.4),
-                    blurRadius: 15,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
-                opacity: isDisabled ? 0.5 : 1.0,
-                child: Icon(
-                  isListening ? Icons.mic : Icons.mic_none,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -1358,7 +1214,8 @@ class _StatusDot extends StatefulWidget {
   State<_StatusDot> createState() => _StatusDotState();
 }
 
-class _StatusDotState extends State<_StatusDot> with SingleTickerProviderStateMixin {
+class _StatusDotState extends State<_StatusDot>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
 
@@ -1407,7 +1264,8 @@ class _StatusDotState extends State<_StatusDot> with SingleTickerProviderStateMi
             color: widget.color,
             shape: BoxShape.circle,
           ),
-          transform: Matrix4.identity()..scale(_animation.value),
+          transform:
+              Matrix4.diagonal3Values(_animation.value, _animation.value, 1.0),
         );
       },
     );

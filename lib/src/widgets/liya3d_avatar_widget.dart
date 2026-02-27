@@ -246,7 +246,8 @@ class _Liya3dAvatarWidgetState extends State<Liya3dAvatarWidget>
     if (!_chatController.hasMessages) {
       _chatController.addWelcomeMessage(
         widget.welcomeMessage ?? _translations.welcomeMessage,
-        suggestions: widget.welcomeSuggestions ?? _translations.welcomeSuggestions,
+        suggestions:
+            widget.welcomeSuggestions ?? _translations.welcomeSuggestions,
       );
     }
 
@@ -381,8 +382,6 @@ class _Liya3dAvatarWidgetState extends State<Liya3dAvatarWidget>
   }
 
   Widget _buildToggleButton() {
-    final screenSize = MediaQuery.of(context).size;
-
     double? left, right, top, bottom;
 
     switch (widget.position) {
@@ -468,7 +467,7 @@ class _Liya3dAvatarWidgetState extends State<Liya3dAvatarWidget>
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -539,7 +538,7 @@ class _Liya3dAvatarWidgetState extends State<Liya3dAvatarWidget>
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Liya3dColors.primary.withOpacity(0.1),
+                  Liya3dColors.primary.withValues(alpha: 0.1),
                   Liya3dColors.bgDark,
                 ],
               ),

@@ -140,7 +140,8 @@ class _Liya3dChatInputState extends State<Liya3dChatInput> {
                     decoration: InputDecoration(
                       hintText: widget.isRecording
                           ? widget.translations.listening
-                          : (widget.placeholder ?? widget.translations.placeholder),
+                          : (widget.placeholder ??
+                              widget.translations.placeholder),
                       hintStyle: TextStyle(
                         color: Liya3dColors.textMuted,
                         fontSize: 14,
@@ -159,8 +160,7 @@ class _Liya3dChatInputState extends State<Liya3dChatInput> {
                 ),
 
                 // Mic button
-                if (widget.showVoice && widget.voiceEnabled)
-                  _buildMicButton(),
+                if (widget.showVoice && widget.voiceEnabled) _buildMicButton(),
 
                 // Send button
                 _buildSendButton(),
@@ -183,18 +183,16 @@ class _Liya3dChatInputState extends State<Liya3dChatInput> {
         width: 36,
         height: 36,
         decoration: BoxDecoration(
-          color: Liya3dColors.primary.withOpacity(0.1),
+          color: Liya3dColors.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: Liya3dColors.primary.withOpacity(0.3),
+            color: Liya3dColors.primary.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
         child: Icon(
           icon,
-          color: isDisabled
-              ? Liya3dColors.textMuted
-              : Liya3dColors.primary,
+          color: isDisabled ? Liya3dColors.textMuted : Liya3dColors.primary,
           size: 18,
         ),
       ),
@@ -210,17 +208,15 @@ class _Liya3dChatInputState extends State<Liya3dChatInput> {
         height: 36,
         margin: const EdgeInsets.only(left: 8),
         decoration: BoxDecoration(
-          gradient: widget.isRecording
-              ? Liya3dColors.dangerGradient
-              : null,
+          gradient: widget.isRecording ? Liya3dColors.dangerGradient : null,
           color: widget.isRecording
               ? null
-              : Liya3dColors.primary.withOpacity(0.1),
+              : Liya3dColors.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: widget.isRecording
-                ? Liya3dColors.danger.withOpacity(0.5)
-                : Liya3dColors.primary.withOpacity(0.3),
+                ? Liya3dColors.danger.withValues(alpha: 0.5)
+                : Liya3dColors.primary.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
@@ -228,7 +224,9 @@ class _Liya3dChatInputState extends State<Liya3dChatInput> {
           widget.isRecording ? Icons.stop : Icons.mic,
           color: widget.isRecording
               ? Colors.white
-              : (widget.isDisabled ? Liya3dColors.textMuted : Liya3dColors.primary),
+              : (widget.isDisabled
+                  ? Liya3dColors.textMuted
+                  : Liya3dColors.primary),
           size: 18,
         ),
       ),

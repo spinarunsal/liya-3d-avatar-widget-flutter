@@ -15,10 +15,10 @@ class Liya3dGlassDecoration {
     Color? color,
   }) {
     return BoxDecoration(
-      color: (color ?? Colors.white).withOpacity(opacity),
+      color: (color ?? Colors.white).withValues(alpha: opacity),
       borderRadius: BorderRadius.circular(borderRadius),
       border: Border.all(
-        color: Colors.white.withOpacity(borderOpacity),
+        color: Colors.white.withValues(alpha: borderOpacity),
         width: 1,
       ),
       boxShadow: shadows,
@@ -36,7 +36,7 @@ class Liya3dGlassDecoration {
       gradient: gradient,
       borderRadius: BorderRadius.circular(borderRadius),
       border: Border.all(
-        color: Colors.white.withOpacity(borderOpacity),
+        color: Colors.white.withValues(alpha: borderOpacity),
         width: 1,
       ),
       boxShadow: shadows,
@@ -46,20 +46,23 @@ class Liya3dGlassDecoration {
   /// Toggle button decoration
   static BoxDecoration toggleButton({bool isRecording = false}) {
     return BoxDecoration(
-      gradient: isRecording ? Liya3dColors.dangerGradient : Liya3dColors.primaryGradient,
+      gradient: isRecording
+          ? Liya3dColors.dangerGradient
+          : Liya3dColors.primaryGradient,
       shape: BoxShape.circle,
       border: Border.all(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white.withValues(alpha: 0.2),
         width: 1,
       ),
       boxShadow: [
         BoxShadow(
-          color: (isRecording ? Liya3dColors.danger : Liya3dColors.primary).withOpacity(0.4),
+          color: (isRecording ? Liya3dColors.danger : Liya3dColors.primary)
+              .withValues(alpha: 0.4),
           blurRadius: 24,
           offset: const Offset(0, 4),
         ),
         BoxShadow(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
           blurRadius: 0,
           spreadRadius: 1,
         ),
@@ -70,10 +73,10 @@ class Liya3dGlassDecoration {
   /// Header glass decoration
   static BoxDecoration header() {
     return BoxDecoration(
-      color: Colors.white.withOpacity(0.1),
+      color: Colors.white.withValues(alpha: 0.1),
       border: Border(
         bottom: BorderSide(
-          color: Colors.white.withOpacity(0.15),
+          color: Colors.white.withValues(alpha: 0.15),
           width: 1,
         ),
       ),
@@ -124,12 +127,12 @@ class Liya3dGlassDecoration {
       ),
       boxShadow: [
         BoxShadow(
-          color: Colors.white.withOpacity(0.05),
+          color: Colors.white.withValues(alpha: 0.05),
           blurRadius: 0,
           offset: const Offset(0, 1),
         ),
         BoxShadow(
-          color: Colors.black.withOpacity(0.2),
+          color: Colors.black.withValues(alpha: 0.2),
           blurRadius: 12,
           offset: const Offset(0, 4),
         ),
@@ -152,10 +155,10 @@ class Liya3dGlassDecoration {
   /// Kiosk status indicator decoration
   static BoxDecoration statusIndicator() {
     return BoxDecoration(
-      color: Colors.black.withOpacity(0.6),
+      color: Colors.black.withValues(alpha: 0.6),
       borderRadius: BorderRadius.circular(24),
       border: Border.all(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         width: 1,
       ),
     );
@@ -167,17 +170,17 @@ class Liya3dGlassDecoration {
       gradient: Liya3dColors.kioskMessagesGradient,
       borderRadius: BorderRadius.circular(20),
       border: Border.all(
-        color: Colors.white.withOpacity(0.12),
+        color: Colors.white.withValues(alpha: 0.12),
         width: 1,
       ),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.4),
+          color: Colors.black.withValues(alpha: 0.4),
           blurRadius: 50,
           offset: const Offset(0, 20),
         ),
         BoxShadow(
-          color: Colors.white.withOpacity(0.08),
+          color: Colors.white.withValues(alpha: 0.08),
           blurRadius: 0,
           offset: const Offset(0, 1),
         ),
@@ -186,7 +189,8 @@ class Liya3dGlassDecoration {
   }
 
   /// Kiosk mic button decoration
-  static BoxDecoration kioskMicButton({bool isRecording = false, bool isDisabled = false}) {
+  static BoxDecoration kioskMicButton(
+      {bool isRecording = false, bool isDisabled = false}) {
     final baseGradient = isRecording
         ? const LinearGradient(
             begin: Alignment.topLeft,
@@ -203,7 +207,8 @@ class Liya3dGlassDecoration {
       shape: BoxShape.circle,
       boxShadow: [
         BoxShadow(
-          color: (isRecording ? Liya3dColors.danger : Liya3dColors.primary).withOpacity(isDisabled ? 0.15 : 0.35),
+          color: (isRecording ? Liya3dColors.danger : Liya3dColors.primary)
+              .withValues(alpha: isDisabled ? 0.15 : 0.35),
           blurRadius: 36,
           offset: const Offset(0, 18),
         ),
@@ -233,7 +238,7 @@ class Liya3dGlassDecoration {
       shape: BoxShape.circle,
       boxShadow: [
         BoxShadow(
-          color: Liya3dColors.premium.withOpacity(0.4),
+          color: Liya3dColors.premium.withValues(alpha: 0.4),
           blurRadius: 20,
           offset: const Offset(0, 8),
         ),

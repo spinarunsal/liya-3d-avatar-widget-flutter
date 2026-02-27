@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../utils/liya3d_colors.dart';
+
 import '../utils/liya3d_glass_decoration.dart';
 
 /// Floating toggle button for opening/closing the chat widget
@@ -74,9 +74,8 @@ class _Liya3dToggleButtonState extends State<Liya3dToggleButton>
     return AnimatedBuilder(
       animation: _bounceAnimation,
       builder: (context, child) {
-        final bounce = widget.animate && !widget.isOpen
-            ? _bounceAnimation.value * 4
-            : 0.0;
+        final bounce =
+            widget.animate && !widget.isOpen ? _bounceAnimation.value * 4 : 0.0;
 
         return Transform.translate(
           offset: Offset(0, -bounce),
@@ -131,7 +130,7 @@ class _Liya3dToggleButtonState extends State<Liya3dToggleButton>
             right: 2,
             child: Icon(
               Icons.auto_awesome,
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               size: widget.size * 0.15,
             ),
           ),

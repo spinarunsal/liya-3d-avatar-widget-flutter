@@ -23,7 +23,8 @@ class Liya3dAudioService {
   double get currentTimeSeconds => _player.position.inMilliseconds / 1000.0;
 
   /// Total duration in seconds
-  double get durationSeconds => (_player.duration?.inMilliseconds ?? 0) / 1000.0;
+  double get durationSeconds =>
+      (_player.duration?.inMilliseconds ?? 0) / 1000.0;
 
   /// Callback for position updates (for lip-sync)
   void Function(double currentTime)? onPositionUpdate;
@@ -76,7 +77,8 @@ class Liya3dAudioService {
       final bytes = base64Decode(base64Audio);
 
       final tempDir = await getTemporaryDirectory();
-      final tempFile = File('${tempDir.path}/liya3d_speech_${DateTime.now().millisecondsSinceEpoch}.$format');
+      final tempFile = File(
+          '${tempDir.path}/liya3d_speech_${DateTime.now().millisecondsSinceEpoch}.$format');
       await tempFile.writeAsBytes(bytes);
 
       await _player.setFilePath(tempFile.path);
@@ -99,10 +101,12 @@ class Liya3dAudioService {
       await _player.play();
 
       // Clean up temp file after playback
-      _player.playerStateStream.firstWhere(
+      _player.playerStateStream
+          .firstWhere(
         (state) => state.processingState == ProcessingState.completed,
-      ).then((_) {
-        tempFile.delete().catchError((_) {});
+      )
+          .then((_) {
+        tempFile.delete().catchError((_) => tempFile);
       });
 
       return true;
