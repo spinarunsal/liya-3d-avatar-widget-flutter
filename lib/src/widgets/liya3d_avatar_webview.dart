@@ -503,8 +503,8 @@ class Liya3dAvatarScene {
         this.scene.add(this.avatar);
         this.isModelLoaded = true;
         
-        // Change shirt/top color to blue (visual marker for local package)
-        this.changeShirtColor(0x2563EB);
+        // Change shirt/top color to red (visual marker for local package)
+        this.changeShirtColor(0xDC2626);
         
         if (window.Liya3dFlutter && window.Liya3dFlutter.onAvatarLoaded) {
           window.Liya3dFlutter.onAvatarLoaded();
