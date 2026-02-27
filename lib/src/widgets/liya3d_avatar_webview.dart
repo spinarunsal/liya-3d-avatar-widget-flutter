@@ -139,52 +139,113 @@ class _Liya3dAvatarWebViewState extends State<Liya3dAvatarWebView>
             onConsoleMessage: (controller, consoleMessage) {},
           ),
         ),
-        // Loading indicator - Animated Particle human silhouette
+        // Loading indicator - Liya branded loading overlay
         if (widget.showLoading && _isLoading)
           AnimatedBuilder(
             animation: _particleAnimController,
             builder: (context, child) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Animated particle human silhouette
-                    SizedBox(
-                      width: 220,
-                      height: 320,
-                      child: CustomPaint(
-                        painter: _ParticleHumanPainter(
-                          animationValue: _particleAnimController.value,
+              final pulse = 0.85 +
+                  0.15 *
+                      (0.5 +
+                          0.5 * (2 * _particleAnimController.value - 1).abs());
+              return Container(
+                color: const Color(0xFF0a0a14),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Pulsing avatar silhouette with gradient ring
+                      Transform.scale(
+                        scale: pulse,
+                        child: Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                const Color(0xFF6366F1).withValues(alpha: 0.3),
+                                const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+                              ],
+                            ),
+                            border: Border.all(
+                              color: Color.lerp(
+                                const Color(0xFF6366F1),
+                                const Color(0xFF8B5CF6),
+                                _particleAnimController.value,
+                              )!
+                                  .withValues(alpha: 0.6),
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF6366F1)
+                                    .withValues(alpha: 0.2 * pulse),
+                                blurRadius: 30,
+                                spreadRadius: 5,
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.person,
+                              color: Color(0xFF6366F1),
+                              size: 56,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Loading text with fade effect
-                    Text(
-                      'Generating...',
-                      style: TextStyle(
-                        color: Colors.white.withValues(
-                            alpha: 0.6 + _particleAnimController.value * 0.2),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    // Progress bar
-                    SizedBox(
-                      width: 180,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          backgroundColor: Colors.white.withValues(alpha: 0.1),
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color(0xFF6366F1)),
-                          minHeight: 3,
+                      const SizedBox(height: 28),
+                      // Liya branding text
+                      ShaderMask(
+                        shaderCallback: (bounds) => LinearGradient(
+                          colors: [
+                            const Color(0xFF6366F1),
+                            Color.lerp(
+                              const Color(0xFF6366F1),
+                              const Color(0xFFA78BFA),
+                              _particleAnimController.value,
+                            )!,
+                          ],
+                        ).createShader(bounds),
+                        child: const Text(
+                          'Liya AI',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 2,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Text(
+                        'Avatar yükleniyor...',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.5),
+                          fontSize: 13,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      // Progress bar
+                      SizedBox(
+                        width: 160,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            backgroundColor:
+                                Colors.white.withValues(alpha: 0.08),
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                                Color(0xFF6366F1)),
+                            minHeight: 3,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -1007,181 +1068,5 @@ window.Liya3dFlutter = {
     _particleAnimController.dispose();
     widget.controller.cleanup();
     super.dispose();
-  }
-}
-
-/// Custom painter for ghost/spirit particle human silhouette loading animation
-/// Male figure with arms spread, no skirt, fits in view, very slow animation
-class _ParticleHumanPainter extends CustomPainter {
-  final double animationValue;
-
-  _ParticleHumanPainter({this.animationValue = 0.0});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..style = PaintingStyle.fill;
-    // Very slow animation - multiply by small factor
-    final time = animationValue * 0.5;
-
-    // Scale and center the figure to fit in view
-    final scale = 0.7; // Scale down to fit
-    final offsetY = 0.1; // Move down slightly
-
-    _drawMaleSilhouette(canvas, size, paint, time, scale, offsetY);
-  }
-
-  void _drawMaleSilhouette(Canvas canvas, Size size, Paint paint, double time,
-      double scale, double offsetY) {
-    // Head - circular cluster (scaled and centered)
-    for (int i = 0; i < 150; i++) {
-      final angle = (i / 150) * 3.14159 * 2;
-      final r = 0.07 + (i % 5) * 0.006;
-      final jitter = 0.008 * _noise(i * 0.2 + time * 0.1);
-      final x = 0.5 + (r * _cos(angle) + jitter) * scale;
-      final y = offsetY + 0.12 + (r * 0.85 * _sin(angle)) * scale;
-      _drawGhostParticle(canvas, size, paint, x, y, i, time);
-    }
-
-    // Neck - thin column
-    for (int i = 0; i < 30; i++) {
-      final x = 0.5 + (_noise(i * 0.3) - 0.5) * 0.03 * scale;
-      final y = offsetY + (0.20 + (i / 30) * 0.04) * scale + 0.12;
-      _drawGhostParticle(canvas, size, paint, x, y, i + 150, time);
-    }
-
-    // Shoulders and upper torso - wider at top
-    for (int i = 0; i < 200; i++) {
-      final t = i / 200;
-      final yPos = 0.24 + t * 0.18;
-      // Male torso - wider shoulders, narrower waist
-      final shoulderWidth = 0.14;
-      final waistWidth = 0.08;
-      final width = shoulderWidth - (shoulderWidth - waistWidth) * t;
-      final x = 0.5 + ((_noise(i * 0.2) - 0.5) * width * 2) * scale;
-      final y = offsetY + yPos * scale + 0.12;
-      _drawGhostParticle(canvas, size, paint, x, y, i + 200, time);
-    }
-
-    // Lower torso / hips - straight (no skirt)
-    for (int i = 0; i < 100; i++) {
-      final t = i / 100;
-      final yPos = 0.42 + t * 0.08;
-      final width = 0.07; // Straight hips
-      final x = 0.5 + ((_noise(i * 0.25 + 100) - 0.5) * width * 2) * scale;
-      final y = offsetY + yPos * scale + 0.12;
-      _drawGhostParticle(canvas, size, paint, x, y, i + 400, time);
-    }
-
-    // Left arm - extended outward
-    for (int i = 0; i < 120; i++) {
-      final t = i / 120;
-      final baseX = 0.36 - t * 0.22;
-      final baseY = 0.26 + t * 0.10;
-      final scatter = 0.015 * (1 - t * 0.3);
-      final x =
-          0.5 + ((baseX - 0.5) + (_noise(i * 0.3) - 0.5) * scatter) * scale;
-      final y = offsetY +
-          (baseY + (_noise(i * 0.2 + 50) - 0.5) * scatter) * scale +
-          0.12;
-      _drawGhostParticle(canvas, size, paint, x, y, i + 500, time);
-    }
-
-    // Right arm - extended outward
-    for (int i = 0; i < 120; i++) {
-      final t = i / 120;
-      final baseX = 0.64 + t * 0.22;
-      final baseY = 0.26 + t * 0.10;
-      final scatter = 0.015 * (1 - t * 0.3);
-      final x = 0.5 +
-          ((baseX - 0.5) + (_noise(i * 0.3 + 200) - 0.5) * scatter) * scale;
-      final y = offsetY +
-          (baseY + (_noise(i * 0.2 + 150) - 0.5) * scatter) * scale +
-          0.12;
-      _drawGhostParticle(canvas, size, paint, x, y, i + 620, time);
-    }
-
-    // Left leg - straight pants style
-    for (int i = 0; i < 140; i++) {
-      final t = i / 140;
-      final baseX = 0.46 - t * 0.04;
-      final baseY = 0.50 + t * 0.35;
-      final scatter = 0.02;
-      final x =
-          0.5 + ((baseX - 0.5) + (_noise(i * 0.25) - 0.5) * scatter) * scale;
-      final y =
-          offsetY + (baseY + (_noise(i * 0.15) - 0.5) * 0.01) * scale + 0.12;
-      _drawGhostParticle(canvas, size, paint, x, y, i + 740, time);
-    }
-
-    // Right leg - straight pants style
-    for (int i = 0; i < 140; i++) {
-      final t = i / 140;
-      final baseX = 0.54 + t * 0.04;
-      final baseY = 0.50 + t * 0.35;
-      final scatter = 0.02;
-      final x = 0.5 +
-          ((baseX - 0.5) + (_noise(i * 0.25 + 300) - 0.5) * scatter) * scale;
-      final y = offsetY +
-          (baseY + (_noise(i * 0.15 + 300) - 0.5) * 0.01) * scale +
-          0.12;
-      _drawGhostParticle(canvas, size, paint, x, y, i + 880, time);
-    }
-
-    // Subtle floating particles around figure
-    for (int i = 0; i < 60; i++) {
-      final angle = (i / 60) * 3.14159 * 2 + time * 0.1;
-      final radius = 0.28 + 0.08 * _noise(i * 0.15 + time * 0.05);
-      final x = 0.5 + radius * _cos(angle) * scale;
-      final y = offsetY + (0.45 + radius * 0.6 * _sin(angle)) * scale + 0.12;
-
-      paint.color =
-          Colors.white.withValues(alpha: 0.06 + 0.03 * _noise(i + time * 0.1));
-      canvas.drawCircle(
-        Offset(x * size.width, y * size.height),
-        1.0,
-        paint,
-      );
-    }
-  }
-
-  void _drawGhostParticle(Canvas canvas, Size size, Paint paint, double x,
-      double y, int index, double time) {
-    final px = x * size.width;
-    final py = y * size.height;
-
-    // Particle size - small and consistent
-    final sizeNoise = _noise(index * 0.08);
-    final particleSize = 1.0 + sizeNoise * 1.2;
-
-    // Ghost-like white color with varying opacity
-    final opacityBase = 0.35 + 0.35 * _noise(index * 0.04 + time * 0.05);
-    final opacity = opacityBase.clamp(0.2, 0.65);
-
-    paint.color = Colors.white.withValues(alpha: opacity);
-    canvas.drawCircle(Offset(px, py), particleSize, paint);
-  }
-
-  // Simple noise function for organic randomness
-  double _noise(double x) {
-    final n = (x * 12.9898).remainder(1.0);
-    return ((n * 43758.5453).remainder(1.0)).abs();
-  }
-
-  double _sin(double x) {
-    x = x.remainder(6.28318);
-    if (x < 0) x += 6.28318;
-    if (x < 3.14159) {
-      return 4 * x * (3.14159 - x) / (3.14159 * 3.14159);
-    } else {
-      x = x - 3.14159;
-      return -4 * x * (3.14159 - x) / (3.14159 * 3.14159);
-    }
-  }
-
-  double _cos(double x) => _sin(x + 1.5708);
-
-  @override
-  bool shouldRepaint(covariant _ParticleHumanPainter oldDelegate) {
-    return oldDelegate.animationValue != animationValue;
   }
 }

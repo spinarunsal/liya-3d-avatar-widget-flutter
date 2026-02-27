@@ -1032,51 +1032,53 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
         _chatController.isLoading || _avatarController.isSpeaking;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 16),
-
           // Hint text (liquid glass pill)
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    width: 1,
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      width: 1,
+                    ),
                   ),
-                ),
-                child: Text(
-                  _getHintText(),
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6),
-                    fontSize: 13,
+                  child: Text(
+                    _getHintText(),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.6),
+                      fontSize: 13,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ),
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(width: 12),
 
           // Mic Button (liquid glass with gradient)
           GestureDetector(
             onTap: isDisabled ? null : _handleMicPressed,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(35),
+              borderRadius: BorderRadius.circular(28),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  width: 70,
-                  height: 70,
+                  width: 56,
+                  height: 56,
                   decoration: BoxDecoration(
                     gradient: isListening
                         ? const LinearGradient(
@@ -1110,7 +1112,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
                     child: Icon(
                       isListening ? Icons.mic : Icons.mic_none,
                       color: Colors.white,
-                      size: 32,
+                      size: 26,
                     ),
                   ),
                 ),
