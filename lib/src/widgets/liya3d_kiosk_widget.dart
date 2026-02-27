@@ -964,7 +964,9 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
                           itemCount: _chatMessages.length,
                           itemBuilder: (context, index) {
                             final message = _chatMessages[index];
-                            return _buildGlassChatBubble(message);
+                            final isLast = index == _chatMessages.length - 1;
+                            return _buildGlassChatBubble(message,
+                                isLast: isLast);
                           },
                         ),
                 ),
@@ -1040,7 +1042,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
   }
 
   /// Liquid Glass Chat Bubble
-  Widget _buildGlassChatBubble(_ChatMessage message) {
+  Widget _buildGlassChatBubble(_ChatMessage message, {bool isLast = false}) {
     final isUser = message.role == 'user';
 
     return Padding(
@@ -1096,8 +1098,9 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
             ),
           ),
 
-          // Suggestions (only for assistant messages)
+          // Suggestions (only for last assistant message)
           if (!isUser &&
+              isLast &&
               message.suggestions != null &&
               message.suggestions!.isNotEmpty &&
               !message.isTyping)
