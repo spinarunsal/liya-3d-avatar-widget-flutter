@@ -460,8 +460,8 @@ class Liya3dAvatarScene {
     // Camera - focused on chest/upper torso (matching Vue.js widget)
     // Lower Y position to show more of the body, not just face
     this.camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 1000);
-    this.camera.position.set(0, 1.35, 2.0);
-    this.camera.lookAt(0, 1.2, 0);
+    this.camera.position.set(0, 1.45, 2.0);
+    this.camera.lookAt(0, 1.35, 0);
     
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -533,7 +533,7 @@ class Liya3dAvatarScene {
         
         // Position so chest/upper torso is centered in view
         // Lower Y value to show more of the body (chest area)
-        this.avatar.position.set(0, -0.5, 0);
+        this.avatar.position.set(0, -0.35, 0);
         
         this.setupMorphTargets();
         

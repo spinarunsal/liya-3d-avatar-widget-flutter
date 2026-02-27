@@ -407,8 +407,9 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
     _lastSentMessage = transcript;
     widget.onMessageSent?.call(transcript);
 
-    // Add user message to chat
+    // Add user message to chat and clear old suggestions
     setState(() {
+      _clearLastSuggestions();
       _chatMessages.add(_ChatMessage(
         role: 'user',
         content: transcript,
@@ -436,8 +437,9 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
   void _handleSuggestionTap(String suggestion) {
     widget.onMessageSent?.call(suggestion);
 
-    // Add user message to chat
+    // Add user message to chat and clear old suggestions
     setState(() {
+      _clearLastSuggestions();
       _chatMessages.add(_ChatMessage(
         role: 'user',
         content: suggestion,
@@ -446,6 +448,21 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
 
     _scrollToBottom();
     _chatController.sendMessage(suggestion);
+  }
+
+  /// Clear suggestions from all previous assistant messages
+  void _clearLastSuggestions() {
+    for (int i = 0; i < _chatMessages.length; i++) {
+      final msg = _chatMessages[i];
+      if (msg.role == 'assistant' && msg.suggestions != null) {
+        _chatMessages[i] = _ChatMessage(
+          role: msg.role,
+          content: msg.content,
+          isTyping: msg.isTyping,
+          suggestions: null,
+        );
+      }
+    }
   }
 
   String _getHintText() {
@@ -538,47 +555,56 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
         ),
       ),
       child: SafeArea(
-        child: Column(
-          children: [
-            // Header (liquid glass)
-            _buildGlassHeader(),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Responsive: detect tablet (width > 600)
+            final isTablet = constraints.maxWidth > 600;
+            final avatarFlex = isTablet ? 4 : 2;
+            final chatFlex = isTablet ? 3 : 3;
 
-            // Avatar Scene with action buttons overlay
-            Expanded(
-              flex: 3,
-              child: Stack(
-                children: [
-                  // Avatar WebView
-                  Liya3dAvatarWebView(
-                    controller: _avatarController,
-                    showLoading: true,
-                    assistantName:
-                        widget.config.assistantName ?? 'AI Assistant',
+            return Column(
+              children: [
+                // Header (liquid glass)
+                _buildGlassHeader(),
+
+                // Avatar Scene with action buttons overlay
+                Expanded(
+                  flex: avatarFlex,
+                  child: Stack(
+                    children: [
+                      // Avatar WebView
+                      Liya3dAvatarWebView(
+                        controller: _avatarController,
+                        showLoading: true,
+                        assistantName:
+                            widget.config.assistantName ?? 'AI Assistant',
+                      ),
+                      // Action buttons (language + reload/cancel) at top center
+                      Positioned(
+                        top: 8,
+                        left: 0,
+                        right: 0,
+                        child: Center(
+                          child: _buildAvatarActionButtons(),
+                        ),
+                      ),
+                    ],
                   ),
-                  // Action buttons (language + reload/cancel) at top center
-                  Positioned(
-                    top: 8,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: _buildAvatarActionButtons(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                ),
 
-            // Chat Bubble Area (liquid glass, below avatar)
-            Flexible(
-              flex: 2,
-              child: _buildGlassChatArea(),
-            ),
+                // Chat Bubble Area (liquid glass, below avatar)
+                Flexible(
+                  flex: chatFlex,
+                  child: _buildGlassChatArea(),
+                ),
 
-            // Voice Control (liquid glass, centered)
-            _buildGlassVoiceControl(),
+                // Voice Control (liquid glass, centered)
+                _buildGlassVoiceControl(),
 
-            const SizedBox(height: 8),
-          ],
+                const SizedBox(height: 8),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -822,7 +848,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
           filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
           child: Container(
             // Fixed height for chat area - use ConstrainedBox instead of fixed height
-            constraints: const BoxConstraints(maxHeight: 150),
+            constraints: const BoxConstraints(maxHeight: 200),
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(20),
