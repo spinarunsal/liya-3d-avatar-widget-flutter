@@ -186,7 +186,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
 
     if (!_welcomeSpoken && mounted) {
       _welcomeSpoken = true;
-      Future.delayed(const Duration(milliseconds: 500), () {
+      Future.delayed(const Duration(milliseconds: 1500), () {
         if (mounted && !_avatarController.isSpeaking) {
           final welcomeMsg =
               widget.welcomeMessage ?? _translations.welcomeMessage;
