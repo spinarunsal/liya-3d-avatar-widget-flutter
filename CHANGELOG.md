@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.3] - 2026-02-27
+
+### Fixed
+- Critical bug: `catchError` callback in audio service missing return value (`body_might_complete_normally_catch_error`)
+- Migrated all `withOpacity()` calls to `withValues(alpha:)` (85+ occurrences across 9 files)
+- Migrated deprecated `speech_to_text` parameters to `SpeechListenOptions` API
+- Replaced deprecated `Matrix4.scale` with `Matrix4.diagonal3Values`
+
+### Removed
+- Unused imports (`dart:convert`, `foundation.dart`, `liya3d_enums.dart`, `liya3d_glass_decoration.dart`, `liya3d_colors.dart`)
+- Unused fields (`_webViewController`, `_isInitialized`)
+- Unused local variable (`screenSize`)
+- Dead code methods (`_buildEmptyState`, `_buildChatBubble`, `_buildVoiceControl`)
+
 ## [0.1.2] - 2025-02-24
 
 ### Fixed
