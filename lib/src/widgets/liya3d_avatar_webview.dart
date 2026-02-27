@@ -503,6 +503,9 @@ class Liya3dAvatarScene {
         this.scene.add(this.avatar);
         this.isModelLoaded = true;
         
+        // Change shirt/top color to blue (visual marker for local package)
+        this.changeShirtColor(0x2563EB);
+        
         if (window.Liya3dFlutter && window.Liya3dFlutter.onAvatarLoaded) {
           window.Liya3dFlutter.onAvatarLoaded();
         }
@@ -540,6 +543,34 @@ class Liya3dAvatarScene {
     });
     
     }
+  
+  changeShirtColor(hexColor) {
+    if (!this.avatar) return;
+    
+    const color = new THREE.Color(hexColor);
+    
+    this.avatar.traverse((child) => {
+      if (child.isMesh && child.material) {
+        const name = (child.name || '').toLowerCase();
+        // Ready Player Me mesh names for shirt/body
+        if (name.includes('outfit_top') || 
+            name.includes('shirt') || 
+            name.includes('top') ||
+            name.includes('body') ||
+            name.includes('wolf3d_outfit')) {
+          if (Array.isArray(child.material)) {
+            child.material.forEach(mat => {
+              mat.color = color;
+              mat.needsUpdate = true;
+            });
+          } else {
+            child.material.color = color;
+            child.material.needsUpdate = true;
+          }
+        }
+      }
+    });
+  }
   
   createDefaultAvatar() {
     

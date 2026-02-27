@@ -545,7 +545,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
 
             // Avatar Scene with action buttons overlay
             Expanded(
-              flex: 5,
+              flex: 3,
               child: Stack(
                 children: [
                   // Avatar WebView
@@ -567,12 +567,15 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
             ),
 
             // Chat Bubble Area (liquid glass, below avatar)
-            _buildGlassChatArea(),
+            Flexible(
+              flex: 2,
+              child: _buildGlassChatArea(),
+            ),
 
             // Voice Control (liquid glass, centered)
             _buildGlassVoiceControl(),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -816,8 +819,8 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
           child: Container(
-            // Fixed height for chat area - reduced to prevent overflow
-            height: 150,
+            // Fixed height for chat area - use ConstrainedBox instead of fixed height
+            constraints: const BoxConstraints(maxHeight: 150),
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(20),
