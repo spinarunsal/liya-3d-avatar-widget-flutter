@@ -542,14 +542,93 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoaded = _avatarController.isModelLoaded;
+    final assistantName = widget.config.assistantName ?? 'AI Assistant';
+
+    return Stack(
+      children: [
+        // Main UI (builds underneath, hidden during loading)
+        AnimatedOpacity(
+          duration: const Duration(milliseconds: 500),
+          opacity: isLoaded ? 1.0 : 0.0,
+          child: _buildMainUI(),
+        ),
+
+        // Full screen loading overlay
+        if (!isLoaded) _buildFullScreenLoader(assistantName),
+      ],
+    );
+  }
+
+  Widget _buildFullScreenLoader(String assistantName) {
     return Container(
       decoration: const BoxDecoration(
-        // Transparent/dark gradient background for liquid glass effect
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF0a0a14), // Darker for more contrast
+            Color(0xFF0a0a14),
+            Color(0xFF101020),
+          ],
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Spinning gradient ring
+            SizedBox(
+              width: 56,
+              height: 56,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                valueColor:
+                    const AlwaysStoppedAnimation<Color>(Color(0xFF6366F1)),
+                backgroundColor: Colors.white.withValues(alpha: 0.08),
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Assistant name
+            ShaderMask(
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: [
+                  Color(0xFF6366F1),
+                  Color(0xFFA78BFA),
+                ],
+              ).createShader(bounds),
+              child: Text(
+                assistantName,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '$assistantName asistan yükleniyor...',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.4),
+                fontSize: 12,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainUI() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFF0a0a14),
             Color(0xFF101020),
           ],
         ),
@@ -559,26 +638,21 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
           builder: (context, constraints) {
             final screenHeight = constraints.maxHeight;
             final isTablet = constraints.maxWidth > 600;
-            // Avatar takes 1/3 of screen (slightly more on tablet)
             final avatarHeight = screenHeight * (isTablet ? 0.38 : 0.33);
 
             return Column(
               children: [
-                // Header (liquid glass) — compact
                 _buildGlassHeader(),
-
-                // Avatar Scene — fixed to 1/3 of screen
                 SizedBox(
                   height: avatarHeight,
                   child: Stack(
                     children: [
                       Liya3dAvatarWebView(
                         controller: _avatarController,
-                        showLoading: true,
+                        showLoading: false,
                         assistantName:
                             widget.config.assistantName ?? 'AI Assistant',
                       ),
-                      // Action buttons at top center
                       Positioned(
                         top: 4,
                         left: 0,
@@ -590,13 +664,9 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
                     ],
                   ),
                 ),
-
-                // Chat Bubble Area — fills remaining space
                 Expanded(
                   child: _buildGlassChatArea(),
                 ),
-
-                // Voice Control — pinned at bottom
                 _buildGlassVoiceControl(),
               ],
             );
