@@ -108,6 +108,9 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
   // Processing state for button disable
   bool _isProcessing = false;
 
+  // Delayed UI reveal after avatar loads
+  bool _showUI = false;
+
   @override
   void initState() {
     super.initState();
@@ -184,9 +187,18 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
 
     widget.onAvatarLoaded?.call();
 
+    // Delay UI reveal by 1 second after avatar loads
+    Future.delayed(const Duration(seconds: 1), () {
+      if (mounted) {
+        setState(() {
+          _showUI = true;
+        });
+      }
+    });
+
     if (!_welcomeSpoken && mounted) {
       _welcomeSpoken = true;
-      Future.delayed(const Duration(milliseconds: 500), () {
+      Future.delayed(const Duration(milliseconds: 1500), () {
         if (mounted && !_avatarController.isSpeaking) {
           final welcomeMsg =
               widget.welcomeMessage ?? _translations.welcomeMessage;
@@ -542,7 +554,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final isLoaded = _avatarController.isModelLoaded;
+    final isLoaded = _showUI;
     final assistantName = widget.config.assistantName ?? 'AI Assistant';
 
     return Stack(
