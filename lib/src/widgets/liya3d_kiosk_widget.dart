@@ -108,6 +108,9 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
   // Processing state for button disable
   bool _isProcessing = false;
 
+  // Auto-hide suggestions timer
+  Timer? _suggestionTimer;
+
   @override
   void initState() {
     super.initState();
@@ -256,6 +259,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
               );
             }
           });
+          if (finalSuggestions != null) _startSuggestionAutoHide();
         }
       },
     );
@@ -333,6 +337,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
             );
           }
         });
+        if (suggestions != null) _startSuggestionAutoHide();
       }
     } catch (_) {
       _showTextWithTypewriter(text, messageIndex, isWelcome);
@@ -384,6 +389,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
               );
             }
           });
+          if (suggestions != null) _startSuggestionAutoHide();
         }
       },
     );
@@ -452,6 +458,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
 
   /// Clear suggestions from all previous assistant messages
   void _clearLastSuggestions() {
+    _suggestionTimer?.cancel();
     for (int i = 0; i < _chatMessages.length; i++) {
       final msg = _chatMessages[i];
       if (msg.role == 'assistant' && msg.suggestions != null) {
@@ -463,6 +470,18 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
         );
       }
     }
+  }
+
+  /// Start auto-hide timer for suggestions
+  void _startSuggestionAutoHide() {
+    _suggestionTimer?.cancel();
+    _suggestionTimer = Timer(const Duration(seconds: 10), () {
+      if (mounted) {
+        setState(() {
+          _clearLastSuggestions();
+        });
+      }
+    });
   }
 
   String _getHintText() {
@@ -530,6 +549,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
 
   @override
   void dispose() {
+    _suggestionTimer?.cancel();
     _typewriterTimer?.cancel();
     _scrollController.dispose();
     _chatController.dispose();
