@@ -13,11 +13,15 @@ class Liya3dAvatarWebView extends StatefulWidget {
   /// Whether to show loading indicator
   final bool showLoading;
 
+  /// Assistant name for loading text
+  final String assistantName;
+
   const Liya3dAvatarWebView({
     super.key,
     required this.controller,
     this.backgroundColor,
     this.showLoading = true,
+    this.assistantName = 'AI Assistant',
   });
 
   @override
@@ -139,67 +143,38 @@ class _Liya3dAvatarWebViewState extends State<Liya3dAvatarWebView>
             onConsoleMessage: (controller, consoleMessage) {},
           ),
         ),
-        // Loading indicator - Liya branded loading overlay
+        // Loading indicator - Sleek branded loader
         if (widget.showLoading && _isLoading)
-          AnimatedBuilder(
-            animation: _particleAnimController,
-            builder: (context, child) {
-              final pulse = 0.85 +
-                  0.15 *
-                      (0.5 +
-                          0.5 * (2 * _particleAnimController.value - 1).abs());
-              return Container(
-                color: const Color(0xFF0a0a14),
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Pulsing avatar silhouette with gradient ring
-                      Transform.scale(
-                        scale: pulse,
-                        child: Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                const Color(0xFF6366F1).withValues(alpha: 0.3),
-                                const Color(0xFF8B5CF6).withValues(alpha: 0.1),
-                              ],
-                            ),
-                            border: Border.all(
-                              color: Color.lerp(
-                                const Color(0xFF6366F1),
-                                const Color(0xFF8B5CF6),
-                                _particleAnimController.value,
-                              )!
-                                  .withValues(alpha: 0.6),
-                              width: 2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF6366F1)
-                                    .withValues(alpha: 0.2 * pulse),
-                                blurRadius: 30,
-                                spreadRadius: 5,
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.person,
-                              color: Color(0xFF6366F1),
-                              size: 56,
+          Container(
+            color: const Color(0xFF0a0a14),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Spinning gradient ring
+                  SizedBox(
+                    width: 64,
+                    height: 64,
+                    child: AnimatedBuilder(
+                      animation: _particleAnimController,
+                      builder: (context, child) {
+                        return Transform.rotate(
+                          angle: _particleAnimController.value * 6.2832,
+                          child: CustomPaint(
+                            painter: _GradientRingPainter(
+                              progress: _particleAnimController.value,
                             ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 28),
-                      // Liya branding text
-                      ShaderMask(
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Dynamic assistant name with shimmer
+                  AnimatedBuilder(
+                    animation: _particleAnimController,
+                    builder: (context, child) {
+                      return ShaderMask(
                         shaderCallback: (bounds) => LinearGradient(
                           colors: [
                             const Color(0xFF6366F1),
@@ -208,47 +183,52 @@ class _Liya3dAvatarWebViewState extends State<Liya3dAvatarWebView>
                               const Color(0xFFA78BFA),
                               _particleAnimController.value,
                             )!,
+                            const Color(0xFF6366F1),
+                          ],
+                          stops: [
+                            0.0,
+                            _particleAnimController.value,
+                            1.0,
                           ],
                         ).createShader(bounds),
-                        child: const Text(
-                          'Liya AI',
-                          style: TextStyle(
+                        child: Text(
+                          widget.assistantName,
+                          style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 22,
+                            fontSize: 20,
                             fontWeight: FontWeight.w600,
-                            letterSpacing: 2,
+                            letterSpacing: 1.5,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Avatar yükleniyor...',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.5),
-                          fontSize: 13,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      // Progress bar
-                      SizedBox(
-                        width: 160,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            backgroundColor:
-                                Colors.white.withValues(alpha: 0.08),
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                                Color(0xFF6366F1)),
-                            minHeight: 3,
-                          ),
-                        ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                ),
-              );
-            },
+                  const SizedBox(height: 6),
+                  Text(
+                    '${widget.assistantName} yükleniyor...',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.4),
+                      fontSize: 12,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Thin progress bar
+                  SizedBox(
+                    width: 120,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        backgroundColor: Colors.white.withValues(alpha: 0.06),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                            Color(0xFF6366F1)),
+                        minHeight: 2,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         // Error display
         if (_error != null)
@@ -1068,5 +1048,52 @@ window.Liya3dFlutter = {
     _particleAnimController.dispose();
     widget.controller.cleanup();
     super.dispose();
+  }
+}
+
+/// Custom painter for gradient spinning ring loader
+class _GradientRingPainter extends CustomPainter {
+  final double progress;
+
+  _GradientRingPainter({required this.progress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 3;
+
+    // Background ring (subtle)
+    final bgPaint = Paint()
+      ..color = const Color(0xFF6366F1).withValues(alpha: 0.1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+    canvas.drawCircle(center, radius, bgPaint);
+
+    // Gradient arc
+    final rect = Rect.fromCircle(center: center, radius: radius);
+    final gradient = SweepGradient(
+      startAngle: 0,
+      endAngle: 4.712, // 270 degrees
+      colors: [
+        const Color(0xFF6366F1).withValues(alpha: 0.0),
+        const Color(0xFF6366F1),
+        const Color(0xFF8B5CF6),
+        const Color(0xFFA78BFA),
+      ],
+      stops: const [0.0, 0.3, 0.7, 1.0],
+    );
+
+    final arcPaint = Paint()
+      ..shader = gradient.createShader(rect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawArc(rect, -1.5708, 4.712, false, arcPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _GradientRingPainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 }

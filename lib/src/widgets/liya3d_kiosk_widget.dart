@@ -552,6 +552,8 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
                   Liya3dAvatarWebView(
                     controller: _avatarController,
                     showLoading: true,
+                    assistantName:
+                        widget.config.assistantName ?? 'AI Assistant',
                   ),
                   // Action buttons (language + reload/cancel) at top center
                   Positioned(

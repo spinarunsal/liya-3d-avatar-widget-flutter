@@ -504,6 +504,7 @@ class _Liya3dAvatarWidgetState extends State<Liya3dAvatarWidget>
               // WebView avatar
               Liya3dAvatarWebView(
                 controller: _avatarController,
+                assistantName: widget.config.assistantName ?? 'AI Assistant',
               ),
 
               // Header overlay
