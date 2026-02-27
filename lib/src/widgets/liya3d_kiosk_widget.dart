@@ -557,31 +557,30 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
       child: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            // Responsive: detect tablet (width > 600)
+            final screenHeight = constraints.maxHeight;
             final isTablet = constraints.maxWidth > 600;
-            final avatarFlex = isTablet ? 4 : 2;
-            final chatFlex = isTablet ? 3 : 3;
+            // Avatar takes 1/3 of screen (slightly more on tablet)
+            final avatarHeight = screenHeight * (isTablet ? 0.38 : 0.33);
 
             return Column(
               children: [
-                // Header (liquid glass)
+                // Header (liquid glass) — compact
                 _buildGlassHeader(),
 
-                // Avatar Scene with action buttons overlay
-                Expanded(
-                  flex: avatarFlex,
+                // Avatar Scene — fixed to 1/3 of screen
+                SizedBox(
+                  height: avatarHeight,
                   child: Stack(
                     children: [
-                      // Avatar WebView
                       Liya3dAvatarWebView(
                         controller: _avatarController,
                         showLoading: true,
                         assistantName:
                             widget.config.assistantName ?? 'AI Assistant',
                       ),
-                      // Action buttons (language + reload/cancel) at top center
+                      // Action buttons at top center
                       Positioned(
-                        top: 8,
+                        top: 4,
                         left: 0,
                         right: 0,
                         child: Center(
@@ -592,16 +591,13 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
                   ),
                 ),
 
-                // Chat Bubble Area (liquid glass, below avatar)
-                Flexible(
-                  flex: chatFlex,
+                // Chat Bubble Area — fills remaining space
+                Expanded(
                   child: _buildGlassChatArea(),
                 ),
 
-                // Voice Control (liquid glass, centered)
+                // Voice Control — pinned at bottom
                 _buildGlassVoiceControl(),
-
-                const SizedBox(height: 8),
               ],
             );
           },
@@ -635,7 +631,7 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -847,8 +843,6 @@ class _Liya3dKioskWidgetState extends State<Liya3dKioskWidget> {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
           child: Container(
-            // Fixed height for chat area - use ConstrainedBox instead of fixed height
-            constraints: const BoxConstraints(maxHeight: 200),
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(20),
